@@ -1,0 +1,66 @@
+body {
+    margin:0;
+    font-family: Arial,sans-serif;
+    background-color: #f9f9f9;
+}
+
+header {
+    background-color: #333;
+    color:white;
+    padding:15px;
+    text-align: center;
+}
+
+header nav {
+    margin-top:10px;
+}
+
+header nav a {
+    color:white;
+    text-decoration: none;
+    margin: 0 15px;
+    font-weight: bold;
+}
+
+header nav a:hover{
+    color:#ffd700
+}
+
+.kapsayici {
+    display:flex;
+    justify-content: center;
+    gap:20px;
+    padding:20px;
+}
+
+.kutu {
+    background-color: white;
+    padding:20px;
+    width: 300px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 6px rgba(0,0,0,0.2);
+}
+
+footer {
+    text-align: center;
+    padding:15px;
+    background-color: #333;
+    color:white;
+    margin-top:20px;
+}
+
+@media (max-width:768px) {
+    .kapsayici{
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .kutu {
+        width:90%;
+    }
+
+    header nav a {
+        display:block;
+        margin:5px 0;
+    }
+}
