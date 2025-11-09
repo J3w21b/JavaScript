@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kim Daha İyi?</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* 1. TEMEL STİLLER (CSS BÖLÜMÜ) */
+        
+        /* Tüm sayfayı kaplayan, ortalanmış bir yapı */
+        body {
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* Ekranı kapla */
+            margin: 0;
+            /* Akıcı bir arkaplan animasyonu */
+            background: linear-gradient(135deg, #667eea, #764ba2, #24c6dc, #514a9d);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+
+        /* Arkaplan animasyonu için @keyframes */
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* 2. ANA KUTU (İÇERİK) */
+        .container {
+            background: rgba(255, 255, 255, 0.15); /* Hafif şeffaf beyaz */
+            backdrop-filter: blur(10px); /* Arkaplanı bulanıklaştır (modern etki) */
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* 3. SONUÇ EKRANI (RASTGELE İSİM) */
+        #result-display {
+            font-size: 3.5rem; /* Büyük font */
+            font-weight: 700;
+            color: #ffffff;
+            margin-top: 20px;
+            margin-bottom: 30px;
+            min-height: 60px; /* Tıklamadan önce boşluk bırakır */
+            /* Giriş animasyonu için başlangıçta gizli */
+            opacity: 0;
+            transform: scale(0.8);
+        }
+
+        /* Sonuç göründüğünde eklenecek animasyon sınıfı */
+        .pop-in {
+            animation: popIn 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+
+        /* Sonuç animasyonu (büyüyerek ve belirerek gelme) */
+        @keyframes popIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.8) rotate(-10deg);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) rotate(0deg);
+            }
+        }
+
+        /* 4. BUTON */
+        #random-button {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 600;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px; /* Tam yuvarlak kenarlar */
+            background: #ffffff;
+            color: #514a9d; /* Arkaplan rengiyle uyumlu */
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Butonun üzerine gelince */
+        #random-button:hover {
+            transform: translateY(-3px) scale(1.05); /* Hafifçe yukarı ve büyük */
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Butona tıklanınca */
+        #random-button:active {
+            transform: translateY(1px) scale(0.98);
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <div id="result-display">?</div>
+
+        <button id="random-button">Kim Daha İyi ?</button>
+    </div>
+
+    <script>
+        // İsimlerin listesi (a1'den a10'a kadar)
+        const names = [
+            "Gülbahar Erdoğan", "Mustafa Doğru", "Kemal Koç", "Sinan Kozan", "Özkan Işık",
+            "Hatice Aktaş", "Ayşenur Giriş", "Orhan Mülayimoğulları", "Gülten Demir", "Sevgi Türk" , "Selçuk Kılık" , "Şeymanur Güneş Kınay "
+        ];
+
+        // HTML elemanlarını seçiyoruz
+        const button = document.getElementById("random-button");
+        const resultDisplay = document.getElementById("result-display");
+
+        // Butona tıklandığında çalışacak fonksiyon
+        button.addEventListener("click", function() {
+            // 1. Rastgele bir isim seç
+            const randomIndex = Math.floor(Math.random() * names.length);
+            const randomName = names[randomIndex];
+
+            // 2. Animasyonu yeniden tetiklemek için sınıfı kaldırıp ekle
+            resultDisplay.classList.remove("pop-in");
+            
+            // Tarayıcının değişikliği algılaması için kısa bir "hile"
+            void resultDisplay.offsetWidth; 
+
+            // 3. Sonucu ekrana yaz ve animasyon sınıfını ekle
+            resultDisplay.textContent = randomName;
+            resultDisplay.classList.add("pop-in");
+        });
+    </script>
+
+</body>
+</html>
