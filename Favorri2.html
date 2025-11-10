@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Favori Hocan Kim? — Final (Gizle/Göster eklendi)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* ============================================
+       Temel Değişkenler & Reset
+       ============================================ */
+    :root{
+      --bg1:#0f2027; --bg2:#2c5364;
+      --card-bg: rgba(255,255,255,0.06);
+      --glass: rgba(255,255,255,0.06);
+      --accent: rgba(255,255,255,0.12);
+      --text:#ffffff;
+      --muted: rgba(255,255,255,0.75);
+      --success: #00c853;
+      --danger: #ff5252;
+      --panel-bg: rgba(0,0,0,0.35);
+      --max-width: 1100px;
+      --radius: 16px;
+    }
+    body.light{
+      --bg1:#f6f9ff; --bg2:#e3f2fd;
+      --card-bg: rgba(190, 28, 28, 0.04);
+      --glass: rgba(0,0,0,0.04);
+      --accent: rgba(0,0,0,0.08);
+      --text:#111827;
+      --muted:#475569;
+      --success:#087f5b;
+      --danger:#c92a2a;
+      --panel-bg: rgba(255,255,255,0.95);
+    }
+
+    *{box-sizing:border-box; margin:0; padding:0;}
+    html,body{height:100%; font-family:'Poppins',sans-serif; -webkit-font-smoothing:antialiased;}
+    body{
+      background: linear-gradient(-45deg, var(--bg1), #203a43, var(--bg2), #1a1a2e);
+      background-size:400% 400%;
+      animation: gradientBG 18s ease infinite;
+      color:var(--text);
+      overflow:auto;
+    }
+    @keyframes gradientBG{
+      0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}
+    }
+
+    /* ============================================
+       Arka plan efektleri (blob & glow)
+       ============================================ */
+    .bg-animated { position: fixed; inset:0; z-index:0; pointer-events:none; }
+    .glow { position: fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; }
+    .blob{ position:absolute; border-radius:50%; filter:blur(120px); opacity:0.5; animation: moveBlob 20s ease-in-out infinite; }
+    .blob.n1{ width:480px; height:480px; left:-200px; top:-140px; background:#ff9a8b; animation-delay:0s; }
+    .blob.n2{ width:520px; height:520px; right:-240px; bottom:-160px; background:#6dd5fa; animation-delay:5s; }
+    .blob.n3{ width:360px; height:360px; left:50%; top:60%; background:#ffd1a1; transform:translateX(-50%); animation-delay:10s; }
+    @keyframes moveBlob{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(40px,-30px) scale(1.12)}}
+
+    /* ============================================
+       Container & Card Yapısı
+       ============================================ */
+    .wrap{ position:relative; z-index:2; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:36px; }
+    .card{
+      width:100%; max-width: var(--max-width); border-radius:var(--radius); padding:28px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+      border:1px solid rgba(255,255,255,0.06); box-shadow: 0 30px 70px rgba(0,0,0,0.55);
+      display:grid; grid-template-columns: 1fr 460px; gap:28px; align-items:start;
+      backdrop-filter: blur(8px);
+    }
+
+    .left{ padding:4px 8px; }
+    h1{ margin:0 0 8px 0; font-size:30px; letter-spacing:0.2px; }
+    p.lead{ margin:0 0 14px 0; color:var(--muted); line-height:1.45; font-size:14px; }
+
+    /* Giriş alanı */
+    .input-row{ display:flex; gap:10px; align-items:center; margin-bottom:8px; }
+    .input-row input[type=text]{
+      flex:1; padding:12px 14px; border-radius:12px; border:1px solid var(--accent);
+      background:var(--card-bg); color:var(--text); outline:none; font-size:15px;
+    }
+    .btn{
+      padding:11px 14px; border-radius:12px; border:none; cursor:pointer; font-weight:700;
+      background: linear-gradient(90deg,#ffffff10,#ffffff08); color:var(--text);
+      transition: transform .14s ease, box-shadow .14s ease, background .2s ease;
+    }
+    .btn:hover{ transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0,0,0,0.35); }
+
+    .theme-toggle{
+      position:absolute; top:20px; right:26px; z-index:10; border-radius:10px; padding:10px 14px; border:none;
+      background: rgba(255,255,255,0.06); cursor:pointer; font-weight:700; backdrop-filter: blur(6px);
+    }
+
+    /* Teacher card */
+    .teacher-card{
+      width:100%; padding:18px; border-radius:14px; background: var(--panel-bg);
+      border:1px solid rgba(255,255,255,0.04); text-align:center; color:var(--text);
+      transition: transform .28s cubic-bezier(.2,.9,.25,1), opacity .25s ease;
+    }
+    .teacher-card.hide{ opacity:0; transform: translateY(8px); }
+    .teacher-name{ font-size:20px; font-weight:800; margin-bottom:6px; }
+    .teacher-desc{ color:var(--muted); font-size:13px; margin:0; }
+
+    /* Sağ panel */
+    .right{ display:flex; flex-direction:column; gap:12px; align-items:stretch; padding:4px; }
+    .panel{ background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius:12px; padding:12px; border:1px solid rgba(255,255,255,0.04); }
+    .panel h3{ margin:0 0 8px 0; font-size:15px; color:var(--text); }
+    .panel .muted{ color:var(--muted); font-size:13px; margin-bottom:8px; }
+
+    /* İstatistik (oy barları) */
+    .stats-wrapper{ position:relative; }
+    .stats-toggle{
+      position:absolute; top:10px; right:10px; z-index:2; border-radius:8px; border:none; padding:6px 8px; cursor:pointer;
+      background: rgba(255,255,255,0.04); color:var(--text); font-size:13px;
+    }
+    .stats-container{ overflow:hidden; transform: translateX(24px); opacity:0; transition: all .45s cubic-bezier(.2,.9,.25,1), max-height .45s ease; max-height:0; }
+    .stats-container.show{ transform: translateX(0); opacity:1; max-height:420px; }
+    .stats-list{ list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:8px; max-height:220px; overflow:auto; }
+    .stats-item{ display:flex; flex-direction:column; gap:6px; font-size:13px; color:var(--muted); }
+    .bar-bg{ background: rgba(255,255,255,0.04); height:12px; border-radius:8px; overflow:hidden; }
+    .bar-fill{ height:100%; width:0%; border-radius:8px; transition: width .9s ease; background: linear-gradient(90deg,#ff9a8b,#6dd5fa); }
+
+    /* Geçmiş listesi */
+    .history-panel{ position:relative; }
+    .history-toggle{
+      position:absolute; top:10px; right:10px; z-index:2; border-radius:8px; border:none; padding:6px 8px; cursor:pointer;
+      background: rgba(255,255,255,0.04); color:var(--text); font-size:13px;
+    }
+    .history-list{ list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:8px; max-height:280px; overflow:auto; transition: max-height .45s ease, opacity .45s ease; }
+    .history-list.collapsed{ max-height:0; opacity:0; padding:0; margin:0; pointer-events:none; }
+    .history-item{ display:flex; align-items:center; justify-content:space-between; gap:8px; padding:10px; border-radius:10px; background: rgba(0,0,0,0.22); border:1px solid rgba(255,255,255,0.03); }
+    .history-left{ display:flex; gap:10px; align-items:center; min-width:0; }
+    .history-meta{ font-size:13px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .history-actions{ display:flex; gap:8px; align-items:center; }
+
+    .chip{ padding:6px 8px; border-radius:8px; font-weight:700; font-size:13px; background: rgba(255,255,255,0.03); color:var(--text); min-width:90px; text-align:center; }
+    .small-btn{ padding:6px 8px; border-radius:8px; border:none; cursor:pointer; background:rgba(255,255,255,0.04); color:var(--text); font-size:13px; }
+    .danger{ background: linear-gradient(90deg, rgba(255,82,82,0.12), rgba(255,82,82,0.06)); color:var(--danger); border:1px solid rgba(255,82,82,0.08); }
+    .success{ background: linear-gradient(90deg, rgba(0,200,83,0.08), rgba(0,200,83,0.04)); color:var(--success); border:1px solid rgba(0,200,83,0.06); }
+
+    /* Filtreleme alanı */
+    .filter-row{ display:flex; gap:8px; align-items:center; margin-bottom:8px; flex-wrap:wrap; }
+    .filter-row input, .filter-row select{ padding:8px 10px; border-radius:8px; border:1px solid var(--accent); background:var(--card-bg); color:var(--text); }
+    .date-input{ width:150px; }
+
+    /* Edit modal (inline basit modal) */
+    .modal-backdrop{ position:fixed; inset:0; background:rgba(0,0,0,0.45); display:none; align-items:center; justify-content:center; z-index:9999; }
+    .modal{ width:92%; max-width:520px; border-radius:12px; padding:18px; background:var(--panel-bg); border:1px solid rgba(255,255,255,0.06); box-shadow:0 20px 40px rgba(0,0,0,0.6); }
+    .modal h4{ margin:0 0 10px 0; }
+    .modal .row{ display:flex; gap:8px; margin-bottom:8px; }
+    .modal input{ flex:1; padding:8px; border-radius:8px; border:1px solid var(--accent); background:var(--card-bg); color:var(--text); }
+
+    /* file input gizleme düzeni */
+    input[type="file"]{ display:none; }
+
+    /* footer */
+    footer{ position:fixed; bottom:12px; left:0; right:0; text-align:center; font-size:13px; color:var(--muted); z-index:3; }
+
+    /* responsive */
+    @media (max-width:1100px){
+      .card{ grid-template-columns: 1fr; padding:18px; gap:18px; }
+      .right{ order:-1; }
+    }
+
+    /* küçük scrollbar */
+    ::-webkit-scrollbar{ width:8px; height:8px; }
+    ::-webkit-scrollbar-thumb{ background: rgba(255,255,255,0.06); border-radius:8px; }
+    ::-webkit-scrollbar-track{ background: transparent; }
+
+    /* yardımcı görseller ve boşluklar: okunabilirlik için ekstra boşluklar */
+    .spacer{ height:8px; }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" id="themeToggle">Tema</button>
+
+  <div class="bg-animated"></div>
+  <div class="glow">
+    <div class="blob n1"></div>
+    <div class="blob n2"></div>
+    <div class="blob n3"></div>
+  </div>
+
+  <div class="wrap">
+    <div class="card">
+      <!-- LEFT: Giriş ve Bilgiler -->
+      <div class="left">
+        <h1>Favori Hocan Kim?</h1>
+        <p class="lead">İsmi yaz; sonuç deterministik olacak. Tüm girdiler, çıkan hocalar ve zaman damgası localStorage'da saklanır. Aşağıdan geçmişi filtrele, düzenle, gizle veya dışa aktar.</p>
+
+        <div class="input-row">
+          <input id="nameInput" type="text" placeholder="İsim yazınız" aria-label="İsim" />
+          <button id="pickBtn" class="btn">Favori Hocan</button>
+        </div>
+
+        <p style="color:var(--muted); font-size:13px; margin-top:6px;">Not: Aynı isim her zaman aynı hocayı getirir. Geçmişteki kayıtlar düzenlenebilir veya silinebilir.</p>
+
+        <div style="margin-top:18px;" class="panel">
+          <h3>Hızlı Bilgiler</h3>
+          <p class="muted">Veriler sadece tarayıcınızda saklanır. İsterseniz geçmişi dışa aktarabilir veya içe aktarabilirsiniz.</p>
+
+          <div style="margin-top:8px;" class="filter-row">
+            <input id="filterName" type="text" placeholder="İsim ile filtrele" />
+            <select id="filterTeacher">
+              <option value="">Tüm Hocalar</option>
+            </select>
+            <input id="fromDate" class="date-input" type="date" />
+            <input id="toDate" class="date-input" type="date" />
+            <button id="applyFilter" class="small-btn">Uygula</button>
+            <button id="resetFilter" class="small-btn">Sıfırla</button>
+          </div>
+
+          <div class="controls" style="margin-top:10px; display:flex; justify-content:space-between; gap:8px;">
+            <div>
+              <button id="clearHistoryBtn" class="small-btn danger">Tüm Geçmişi Temizle</button>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button id="exportBtn" class="small-btn">Geçmişi Dışa Aktar</button>
+              <button id="importBtn" class="small-btn">İçeri Aktar</button>
+              <input id="importFile" type="file" accept="application/json" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Sonuç, İstatistik ve Geçmiş -->
+      <div class="right">
+        <div class="panel teacher-card" id="resultCard">
+          <div class="teacher-name" id="teacherName">Made by J3w21b</div>
+          <p class="teacher-desc" id="teacherDesc">Burada seçilen hocanın kısa tanımı görüntülenecek.</p>
+        </div>
+
+        <div class="panel stats-wrapper">
+          <button id="statsToggle" class="stats-toggle" title="İstatistikleri gizle/ göster">Gizle</button>
+          <div class="stats-container" id="statsContainer">
+            <h3>En Favoriler</h3>
+            <div id="statsInner" class="muted">Henüz seçim yapılmadı.</div>
+          </div>
+        </div>
+
+        <div class="panel history-panel">
+          <button id="historyToggle" class="history-toggle" title="Geçmişi gizle/ göster">Gizle</button>
+          <h3>Geçmiş (Son 100)</h3>
+          <ul id="historyList" class="history-list"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>© 2025 Made by J3w21b — Offline & Local</footer>
+
+  <!-- EDIT MODAL -->
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <h4 id="modalTitle">Kaydı Düzenle</h4>
+      <div class="row">
+        <input id="editName" type="text" placeholder="İsim" />
+      </div>
+      <div class="row">
+        <select id="editTeacherSelect"></select>
+      </div>
+      <div class="row">
+        <input id="editTimestamp" type="datetime-local" />
+      </div>
+      <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:8px;">
+        <button id="modalCancel" class="small-btn">İptal</button>
+        <button id="modalSave" class="small-btn success">Kaydet</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ===========================================
+       Final uygulama:
+       - Gizle/göster: Geçmiş ve İstatistik panellerine eklendi
+       - Filtreleme, düzenleme, import/export, tüm önceki özellikler korunmuştur
+       - localStorage tamamen etkin
+       =========================================== */
+
+    // ---------- STORAGE ANAHTARLARI ----------
+    const STORAGE = {
+      TEACHERS: 'fav_teachers_v3',
+      HISTORY: 'fav_history_v3',
+      THEME: 'fav_theme_v3',
+      UI: 'fav_ui_v3' // UI durumu (ör: paneller gizli mi)
+    };
+
+    // ---------- DEFAULT ÖĞRETMENLER ----------
+    const DEFAULT_TEACHERS = [
+      { id: 'S4', name: 'Mustafa Doğru', desc: 'Matematik uzmanı. İŞTE BÖLE!', count: 0 },
+      { id: 'S2', name: 'Gülbahar Erdoğan', desc: 'Eskiye göre çok daha iyi.', count: 0 },
+      { id: 'S1', name: 'Sinan Kozan', desc: 'Sınav evimiz, Sinan babamız!', count: 0 },
+      { id: 'S3', name: 'Özkan Işık', desc: 'Severizzz.', count: 0 },
+      { id: 'S11', name: 'Kemal Koç', desc: 'Tartışılır...', count: 0 },
+      { id: 'S5', name: 'Hatice Aktaş', desc: 'Öğrenci için çabalar.', count: 0 },
+      { id: 'S6', name: 'Ayşenur Giriş', desc: 'Din konusunda tecrübeli.', count: 0 },
+      { id: 'S7', name: 'Orhan Mülayimoğulları', desc: 'ADAMDIR!', count: 0 },
+      { id: 'S8', name: 'Gülten Demir', desc: 'Dersini çoğunlukla dinlenmiyor ama ben dinlerim.', count: 0 },
+      { id: 'S9', name: 'Sevgi Türk', desc: 'Geometri konusunda bilgili.', count: 0 },
+      { id: 'S10', name: 'Selçuk Kılık', desc: 'İyi hocadır.', count: 0 }
+    ];
+
+    // ---------- DOM REFERANSLAR ----------
+    const input = document.getElementById('nameInput');
+    const pickBtn = document.getElementById('pickBtn');
+    const teacherNameEl = document.getElementById('teacherName');
+    const teacherDescEl = document.getElementById('teacherDesc');
+    const resultCard = document.getElementById('resultCard');
+
+    const statsContainer = document.getElementById('statsContainer');
+    const statsInner = document.getElementById('statsInner');
+    const statsToggle = document.getElementById('statsToggle');
+
+    const historyList = document.getElementById('historyList');
+    const historyToggle = document.getElementById('historyToggle');
+
+    const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+    const exportBtn = document.getElementById('exportBtn');
+    const importBtn = document.getElementById('importBtn');
+    const importFile = document.getElementById('importFile');
+
+    const filterName = document.getElementById('filterName');
+    const filterTeacher = document.getElementById('filterTeacher');
+    const fromDate = document.getElementById('fromDate');
+    const toDate = document.getElementById('toDate');
+    const applyFilter = document.getElementById('applyFilter');
+    const resetFilter = document.getElementById('resetFilter');
+
+    const themeToggle = document.getElementById('themeToggle');
+
+    // modal
+    const modalBackdrop = document.getElementById('modalBackdrop');
+    const editName = document.getElementById('editName');
+    const editTeacherSelect = document.getElementById('editTeacherSelect');
+    const editTimestamp = document.getElementById('editTimestamp');
+    const modalCancel = document.getElementById('modalCancel');
+    const modalSave = document.getElementById('modalSave');
+
+    // UI durum (panel görünürlükleri)
+    let uiState = {
+      statsHidden: false,
+      historyHidden: false
+    };
+
+    // Uygulama durumu
+    let teachers = [];
+    let history = []; // öğe: { ts, nameInput, teacherId, teacherName }
+    let filteredHistory = []; // filtrelenmiş görünüm
+    let currentEditTs = null; // modal için düzenlenen kayıt ts'si
+
+    /* ---------- Yardımcı Fonksiyonlar ---------- */
+
+    function loadFromStorage(){
+      const tRaw = localStorage.getItem(STORAGE.TEACHERS);
+      const hRaw = localStorage.getItem(STORAGE.HISTORY);
+      const uiRaw = localStorage.getItem(STORAGE.UI);
+      teachers = tRaw ? JSON.parse(tRaw) : JSON.parse(JSON.stringify(DEFAULT_TEACHERS));
+      history = hRaw ? JSON.parse(hRaw) : [];
+      if(uiRaw) {
+        try { uiState = JSON.parse(uiRaw); } catch(e) { uiState = { statsHidden:false, historyHidden:false }; }
+      }
+    }
+
+    function saveTeachers(){
+      localStorage.setItem(STORAGE.TEACHERS, JSON.stringify(teachers));
+    }
+
+    function saveHistory(){
+      localStorage.setItem(STORAGE.HISTORY, JSON.stringify(history));
+    }
+
+    function saveUIState(){
+      localStorage.setItem(STORAGE.UI, JSON.stringify(uiState));
+    }
+
+    function formatDate(ts){
+      const d = new Date(ts);
+      const y = d.getFullYear();
+      const m = String(d.getMonth()+1).padStart(2,'0');
+      const day = String(d.getDate()).padStart(2,'0');
+      const hh = String(d.getHours()).padStart(2,'0');
+      const mm = String(d.getMinutes()).padStart(2,'0');
+      const ss = String(d.getSeconds()).padStart(2,'0');
+      return `${y}-${m}-${day} ${hh}:${mm}:${ss}`;
+    }
+
+    function toInputDatetimeLocal(ts){
+      const d = new Date(ts);
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth()+1).padStart(2,'0');
+      const dd = String(d.getDate()).padStart(2,'0');
+      const hh = String(d.getHours()).padStart(2,'0');
+      const min = String(d.getMinutes()).padStart(2,'0');
+      return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+    }
+
+    function parseLocalDateInputToTs(str){
+      if(!str) return null;
+      const parts = str.split('-');
+      if(parts.length !== 3) return null;
+      return new Date(Number(parts[0]), Number(parts[1])-1, Number(parts[2]), 0,0,0).getTime();
+    }
+
+    /* ---------- Deterministik seçim (hash) ---------- */
+    function nameToIndex(name){
+      if(!name) return Math.floor(Math.random()*teachers.length);
+      const s = name.trim().toLowerCase();
+      let hash = 0;
+      for(let i=0;i<s.length;i++){
+        hash = (hash * 31 + s.charCodeAt(i)) | 0;
+      }
+      hash = Math.abs(hash);
+      return hash % teachers.length;
+    }
+
+    /* ---------- UI Güncelleme Fonksiyonları ---------- */
+    function renderTeacherCard(t){
+      teacherNameEl.textContent = `${t.id} — ${t.name}`;
+      teacherDescEl.textContent = t.desc;
+      resultCard.classList.add('hide');
+      setTimeout(()=> resultCard.classList.remove('hide'), 40);
+    }
+
+    function updateStatsUI(){
+      const nonZero = teachers.filter(x => x.count > 0).sort((a,b)=>b.count-a.count);
+      if(nonZero.length === 0){
+        statsInner.innerHTML = '<div class="muted">Henüz seçim yapılmadı.</div>';
+        statsContainer.classList.remove('show');
+        return;
+      }
+      const max = Math.max(...nonZero.map(x=>x.count));
+      let html = '<ul class="stats-list">';
+      for(const t of nonZero){
+        const w = Math.round((t.count / max) * 100);
+        html += `<li class="stats-item">
+                  <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <strong style="color:var(--text)">${t.name}</strong>
+                    <span class="muted">${t.count} oy</span>
+                  </div>
+                  <div class="bar-bg"><div class="bar-fill" style="width:${w}%"></div></div>
+                </li>`;
+      }
+      html += '</ul>';
+      statsInner.innerHTML = html;
+      // göster/gizle durumuna göre sınıf ekle
+      if(!uiState.statsHidden) statsContainer.classList.add('show'); else statsContainer.classList.remove('show');
+
+      requestAnimationFrame(()=> {
+        const fills = statsInner.querySelectorAll('.bar-fill');
+        fills.forEach(el => {
+          const w = el.style.width;
+          el.style.width = '0%';
+          setTimeout(()=> el.style.width = w, 40);
+        });
+      });
+    }
+
+    function populateTeacherFilter(){
+      filterTeacher.innerHTML = '<option value="">Tüm Hocalar</option>';
+      editTeacherSelect.innerHTML = '';
+      teachers.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t.id;
+        opt.textContent = t.name;
+        filterTeacher.appendChild(opt);
+        const opt2 = opt.cloneNode(true);
+        editTeacherSelect.appendChild(opt2);
+      });
+    }
+
+    function renderHistoryList(listToRender){
+      historyList.innerHTML = '';
+      const list = listToRender.slice().reverse().slice(0,100);
+      if(list.length === 0){
+        historyList.innerHTML = '<li class="history-item"><div class="history-left"><div class="history-meta muted">Geçmiş boş</div></div></li>';
+        return;
+      }
+      list.forEach(rec => {
+        const li = document.createElement('li');
+        li.className = 'history-item';
+        li.dataset.ts = rec.ts;
+
+        const left = document.createElement('div');
+        left.className = 'history-left';
+
+        const chip = document.createElement('div');
+        chip.className = 'chip';
+        chip.textContent = rec.teacherName;
+
+        const meta = document.createElement('div');
+        meta.className = 'history-meta';
+        meta.innerHTML = `<strong style="display:block; max-width:220px; overflow:hidden; text-overflow:ellipsis;">${rec.nameInput || '(Boş)'}</strong>
+                          <span style="color:var(--muted); font-size:12px;">${formatDate(rec.ts)}</span>`;
+
+        left.appendChild(chip);
+        left.appendChild(meta);
+
+        const actions = document.createElement('div');
+        actions.className = 'history-actions';
+
+        const btnEdit = document.createElement('button');
+        btnEdit.className = 'small-btn';
+        btnEdit.textContent = 'Düzenle';
+        btnEdit.addEventListener('click', ()=> openEditModal(rec.ts));
+
+        const btnDel = document.createElement('button');
+        btnDel.className = 'small-btn danger';
+        btnDel.textContent = 'Sil';
+        btnDel.addEventListener('click', ()=> {
+          if(confirm('Bu kaydı silmek istiyor musun?')) removeHistoryItem(rec.ts);
+        });
+
+        actions.appendChild(btnEdit);
+        actions.appendChild(btnDel);
+
+        li.appendChild(left);
+        li.appendChild(actions);
+        historyList.appendChild(li);
+      });
+
+      // collapse kontrolü
+      if(uiState.historyHidden) historyList.classList.add('collapsed'); else historyList.classList.remove('collapsed');
+    }
+
+    /* ---------- Geçmiş Yönetimi ---------- */
+
+    function pushHistory(nameInput, teacher){
+      const rec = {
+        ts: Date.now(),
+        nameInput: nameInput || '',
+        teacherId: teacher.id,
+        teacherName: teacher.name
+      };
+      history.push(rec);
+      if(history.length > 1000) history.shift();
+      saveHistory();
+      renderFilteredHistory();
+    }
+
+    function removeHistoryItem(ts){
+      const idx = history.findIndex(h => h.ts === ts);
+      if(idx === -1) return;
+      const rec = history[idx];
+      const t = teachers.find(x => x.id === rec.teacherId);
+      if(t && t.count>0) t.count = Math.max(0, t.count - 1);
+      history.splice(idx,1);
+      saveHistory();
+      saveTeachers();
+      updateStatsUI();
+      renderFilteredHistory();
+    }
+
+    function clearAllHistory(){
+      if(!confirm('Tüm geçmişi ve sayıları sıfırlamak istediğine emin misin?')) return;
+      history = [];
+      teachers.forEach(t => t.count = 0);
+      saveHistory();
+      saveTeachers();
+      updateStatsUI();
+      renderFilteredHistory();
+    }
+
+    /* ---------- Export / Import ---------- */
+
+    function exportAll(){
+      const payload = {
+        exportedAt: new Date().toISOString(),
+        teachers,
+        history
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'fav-teachers-export.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function importFileHandler(file){
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e){
+        try{
+          const data = JSON.parse(e.target.result);
+          if(!Array.isArray(data.teachers) || !Array.isArray(data.history)){
+            alert('Geçersiz dosya formatı.');
+            return;
+          }
+          const map = {};
+          teachers.forEach(t => map[t.id] = t);
+          data.teachers.forEach(t => {
+            if(map[t.id]) {
+              map[t.id].count = Math.max(map[t.id].count || 0, t.count || 0);
+            }
+          });
+          const appended = (data.history || []).map(h => ({ ...h, ts: h.ts || Date.now() + Math.floor(Math.random()*1000)}));
+          history = history.concat(appended);
+          if(history.length > 1000) history = history.slice(history.length - 1000);
+          saveTeachers();
+          saveHistory();
+          updateStatsUI();
+          renderFilteredHistory();
+          populateTeacherFilter();
+          alert('İçeri aktarma başarılı. Veriler güncellendi.');
+        } catch(err){
+          alert('Dosya okunamadı veya JSON hatası.');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    /* ---------- Filtreleme ---------- */
+
+    function applyFiltersToHistory(){
+      const nameQ = filterName.value.trim().toLowerCase();
+      const teacherQ = filterTeacher.value;
+      const fromTs = parseLocalDateInputToTs(fromDate.value);
+      const toTsRaw = parseLocalDateInputToTs(toDate.value);
+      const toTs = toTsRaw ? (toTsRaw + 24*3600*1000 - 1) : null;
+
+      let list = history.slice();
+
+      if(nameQ){
+        list = list.filter(r => (r.nameInput || '').toLowerCase().includes(nameQ));
+      }
+      if(teacherQ){
+        list = list.filter(r => r.teacherId === teacherQ);
+      }
+      if(fromTs){
+        list = list.filter(r => r.ts >= fromTs);
+      }
+      if(toTs){
+        list = list.filter(r => r.ts <= toTs);
+      }
+
+      filteredHistory = list;
+      renderHistoryList(filteredHistory);
+    }
+
+    function renderFilteredHistory(){
+      applyFiltersToHistory();
+    }
+
+    /* ---------- Edit (Düzenleme) ---------- */
+
+    function openEditModal(ts){
+      currentEditTs = ts;
+      const rec = history.find(h => h.ts === ts);
+      if(!rec) return alert('Kayıt bulunamadı.');
+      editName.value = rec.nameInput;
+      editTeacherSelect.value = rec.teacherId;
+      editTimestamp.value = toInputDatetimeLocal(rec.ts);
+      modalBackdrop.style.display = 'flex';
+      setTimeout(()=> editName.focus(), 80);
+    }
+
+    function closeModal(){
+      modalBackdrop.style.display = 'none';
+      currentEditTs = null;
+    }
+
+    function saveEdit(){
+      if(currentEditTs === null) return;
+      const recIndex = history.findIndex(h => h.ts === currentEditTs);
+      if(recIndex === -1) return alert('Kayıt bulunamadı.');
+      const old = history[recIndex];
+      const oldTeacherId = old.teacherId;
+
+      const newName = editName.value.trim();
+      const newTeacherId = editTeacherSelect.value;
+      let newTs = Date.parse(editTimestamp.value);
+      if(isNaN(newTs)) newTs = Date.now();
+
+      if(newTeacherId !== oldTeacherId){
+        const oldT = teachers.find(t => t.id === oldTeacherId);
+        const newT = teachers.find(t => t.id === newTeacherId);
+        if(oldT && oldT.count > 0) oldT.count = Math.max(0, oldT.count - 1);
+        if(newT) newT.count = (newT.count || 0) + 1;
+      }
+
+      history[recIndex] = {
+        ts: newTs,
+        nameInput: newName,
+        teacherId: newTeacherId,
+        teacherName: (teachers.find(t => t.id === newTeacherId) || {}).name || ''
+      };
+
+      saveHistory();
+      saveTeachers();
+      updateStatsUI();
+      renderFilteredHistory();
+      closeModal();
+    }
+
+    /* ---------- Seçim (Favori bulma) ---------- */
+
+    function pickFavorite(name){
+      const idx = nameToIndex(name);
+      const teacher = teachers[idx];
+      teacher.count = (teacher.count || 0) + 1;
+      renderTeacherCard(teacher);
+      updateStatsUI();
+      pushHistory(name, teacher);
+      saveTeachers();
+    }
+
+    /* ---------- Tema: Otomatik + Manuel ---------- */
+    function loadTheme(){
+      const saved = localStorage.getItem(STORAGE.THEME);
+      if(saved === 'light'){
+        document.body.classList.add('light');
+      } else if(saved === 'dark'){
+        document.body.classList.remove('light');
+      } else {
+        applyAutoTheme();
+      }
+    }
+
+    function applyAutoTheme(){
+      const hour = new Date().getHours();
+      if(hour >= 20 || hour < 6){
+        document.body.classList.remove('light');
+      } else {
+        document.body.classList.add('light');
+      }
+    }
+
+    function toggleThemeManual(){
+      document.body.classList.toggle('light');
+      const isLight = document.body.classList.contains('light');
+      localStorage.setItem(STORAGE.THEME, isLight ? 'light' : 'dark');
+    }
+
+    /* ---------- Gizle / Göster Kontrolleri ---------- */
+
+    function toggleStatsPanel(){
+      uiState.statsHidden = !uiState.statsHidden;
+      saveUIState();
+      if(uiState.statsHidden){
+        statsToggle.textContent = 'Göster';
+        statsContainer.classList.remove('show');
+      } else {
+        statsToggle.textContent = 'Gizle';
+        statsContainer.classList.add('show');
+      }
+    }
+
+    function toggleHistoryPanel(){
+      uiState.historyHidden = !uiState.historyHidden;
+      saveUIState();
+      if(uiState.historyHidden){
+        historyToggle.textContent = 'Göster';
+        historyList.classList.add('collapsed');
+      } else {
+        historyToggle.textContent = 'Gizle';
+        historyList.classList.remove('collapsed');
+      }
+    }
+
+    /* ---------- Başlangıç ve Event'ler ---------- */
+
+    function initApp(){
+      loadFromStorage();
+      populateTeacherFilter();
+      loadTheme();
+      // UI buton etiketlerini yükle
+      statsToggle.textContent = uiState.statsHidden ? 'Göster' : 'Gizle';
+      historyToggle.textContent = uiState.historyHidden ? 'Göster' : 'Gizle';
+
+      updateStatsUI();
+      renderFilteredHistory();
+
+      if(history.length > 0){
+        const last = history[history.length - 1];
+        const t = teachers.find(x => x.id === last.teacherId);
+        if(t) renderTeacherCard(t);
+      } else {
+        teacherNameEl.textContent = 'Made by J3w21b';
+        teacherDescEl.textContent = 'Burada seçilen hocanın kısa tanımı görüntülenecek.';
+      }
+    }
+
+    // event binding
+    pickBtn.addEventListener('click', ()=>{
+      const name = input.value.trim();
+      pickFavorite(name);
+      input.value = '';
+      input.focus();
+    });
+
+    input.addEventListener('keydown', (e)=>{
+      if(e.key === 'Enter') pickBtn.click();
+    });
+
+    clearHistoryBtn.addEventListener('click', ()=> clearAllHistory());
+    exportBtn.addEventListener('click', ()=> exportAll());
+    importBtn.addEventListener('click', ()=> importFile.click());
+    importFile.addEventListener('change', (e)=> {
+      const f = e.target.files[0];
+      if(f) importFileHandler(f);
+      importFile.value = '';
+    });
+
+    applyFilter.addEventListener('click', ()=> renderFilteredHistory());
+    resetFilter.addEventListener('click', ()=> {
+      filterName.value = '';
+      filterTeacher.value = '';
+      fromDate.value = '';
+      toDate.value = '';
+      renderFilteredHistory();
+    });
+
+    filterName.addEventListener('input', ()=> renderFilteredHistory());
+    filterTeacher.addEventListener('change', ()=> renderFilteredHistory());
+    fromDate.addEventListener('change', ()=> renderFilteredHistory());
+    toDate.addEventListener('change', ()=> renderFilteredHistory());
+
+    modalCancel.addEventListener('click', ()=> closeModal());
+    modalBackdrop.addEventListener('click', (e)=> {
+      if(e.target === modalBackdrop) closeModal();
+    });
+    modalSave.addEventListener('click', ()=> saveEdit());
+
+    statsToggle.addEventListener('click', ()=> toggleStatsPanel());
+    historyToggle.addEventListener('click', ()=> toggleHistoryPanel());
+    themeToggle.addEventListener('click', ()=> toggleThemeManual());
+
+    initApp();
+
+    // otomatik tema tekrar kontrol (sadece otomatik moddaysa)
+    setInterval(()=> {
+      const saved = localStorage.getItem(STORAGE.THEME);
+      if(!saved) applyAutoTheme();
+    }, 5 * 60 * 1000);
+
+    /* Basit güvenlik-not: Hiçbir veri dışarı gönderilmez. localStorage sadece bu tarayıcıya özgüdür. */
+  </script>
+</body>
+</html>
