@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Favori Hocan Kim?</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg1: #ff9a8b;
+      --bg2: #6dd5fa;
+      --card-bg: rgba(0, 0, 0, 0.45);
+      --glass: rgba(255, 255, 255, 0.06);
+      --accent: rgba(255, 255, 255, 0.12);
+      --text: #ffffff;
+      --muted: rgba(255, 255, 255, 0.8);
+    }
+
+    body.light {
+      --bg1: #830000;
+      --bg2: #e3f2fd;
+      --card-bg: rgba(255, 255, 255, 0.85);
+      --glass: rgba(0, 0, 0, 0.05);
+      --accent: rgba(0, 0, 0, 0.12);
+      --text: #222222;
+      --muted: #555555;
+    }
+
+    * { box-sizing: border-box; transition: all 0.6s ease; }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(120deg, var(--bg1), var(--bg2));
+      overflow: hidden;
+    }
+
+    .bg-animated {
+      position: fixed; inset: 0; z-index: 0; overflow: hidden;
+      background: radial-gradient(circle at 10% 20%, rgba(255,255,255,0.06), transparent 10%),
+                  radial-gradient(circle at 80% 80%, rgba(0,0,0,0.07), transparent 10%);
+      animation: floatBG 12s linear infinite;
+    }
+
+    @keyframes floatBG {
+      0% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-12px) rotate(3deg); }
+      100% { transform: translateY(0) rotate(0deg); }
+    }
+
+    .glow { position: fixed; inset: 0; overflow: hidden; z-index: 0; }
+    .blob { position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.5; animation: moveBlob 20s ease-in-out infinite; }
+    .blob:nth-child(1){ width:400px; height:400px; left:-150px; top:-100px; background:#ff9a8b; animation-delay:0s;}
+    .blob:nth-child(2){ width:420px; height:420px; right:-180px; bottom:-120px; background:#6dd5fa; animation-delay:5s;}
+    .blob:nth-child(3){ width:300px; height:300px; left:50%; top:60%; background:#ffd1a1; animation-delay:10s;}
+    @keyframes moveBlob{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(40px,-30px) scale(1.15);} }
+
+    .wrap {
+      position: relative; z-index: 1; min-height: 100vh;
+      display: flex; align-items: center; justify-content: center; padding: 40px;
+    }
+
+    .card {
+      width: 100%; max-width: 900px; border-radius: 18px; padding: 28px;
+      background: var(--card-bg); box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.08);
+      display: grid; grid-template-columns: 1fr 360px; gap: 22px; align-items: center;
+    }
+
+    .left { padding: 12px 18px; }
+    h1 { color: var(--text); margin: 0 0 10px 0; font-size: 28px; font-weight: 700; }
+    p.lead { color: var(--muted); margin: 0 0 18px 0; }
+
+    .input-row { display: flex; gap: 10px; align-items: center; }
+    .input-row input[type=text] {
+      flex: 1; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--accent);
+      background: rgba(255,255,255,0.1); color: var(--text); outline: none; font-size: 15px;
+    }
+
+    .btn {
+      padding: 12px 14px; border-radius: 12px; border: none;
+      background: rgba(255,255,255,0.1); color: var(--text);
+      cursor: pointer; font-weight: 600; transition: all .25s ease;
+    }
+    .btn:hover { background: rgba(255,255,255,0.2); }
+
+    .theme-toggle {
+      position: absolute; top: 20px; right: 30px; z-index: 10;
+      background: rgba(200, 243, 8, 0.2); color: var(--text);
+      padding: 10px 14px; border-radius: 10px; border: none; cursor: pointer;
+      font-weight: 600; backdrop-filter: blur(6px); transition: all 0.4s ease;
+    }
+    .theme-toggle:hover { background: rgba(240,6,6,0.35); transform: scale(1.05); }
+
+    .right {
+      padding: 18px; border-radius: 14px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.03));
+      border: 1px solid rgba(255,255,255,0.04); height: 100%;
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+      overflow-y: auto;
+    }
+
+    .teacher-card {
+      width: 100%; padding: 14px; border-radius: 12px;
+      background: rgba(0,0,0,0.35); text-align: center;
+      opacity: 0; transform: translateY(10px);
+      transition: all 420ms cubic-bezier(.2,.9,.25,1);
+    }
+    body.light .teacher-card { background: rgba(255,255,255,0.6); }
+    .teacher-card.show { opacity: 1; transform: translateY(0); }
+
+    .teacher-name {
+      font-size: 20px; font-weight: 700; color: var(--text);
+      margin-bottom: 6px; animation: softGlow 3s ease-in-out infinite;
+    }
+
+    @keyframes softGlow {
+      0% { opacity:0.9; transform:scale(1); text-shadow:0 0 4px rgba(255,255,255,0.2);}
+      50% { opacity:1; transform:scale(1.03); text-shadow:0 0 12px rgba(255,255,255,0.5);}
+      100% { opacity:0.9; transform:scale(1); text-shadow:0 0 4px rgba(255,255,255,0.2);}
+    }
+
+    .teacher-desc { color: var(--muted); font-size: 14px; margin: 0; }
+    .small { font-size: 12px; color: var(--muted); margin-top: 8px; }
+
+    footer {
+      position: fixed; bottom: 14px; width: 100%; text-align: center;
+      color: var(--muted); font-size: 14px; letter-spacing: 0.6px;
+      opacity: 0; animation: fadeInFooter 2.5s ease forwards 1.2s;
+    }
+    @keyframes fadeInFooter { 0%{opacity:0;transform:translateY(15px);}100%{opacity:0.9;transform:translateY(0);} }
+
+    @media (max-width:880px){ .card { grid-template-columns:1fr; } .right { order: -1; } }
+
+    /* === İSTATİSTİK PANELİ === */
+    .stats-container {
+      width: 100%; margin-top: 15px; padding: 14px;
+      border-radius: 12px; background: rgba(0,0,0,0.2);
+      opacity: 0; transform: translateX(40px);
+      transition: all 600ms cubic-bezier(.2,.9,.25,1);
+      overflow: hidden;
+    }
+    .stats-container.show { opacity: 1; transform: translateX(0); }
+    body.light .stats-container { background: rgba(255,255,255,0.5); }
+
+    .stats-container h3 {
+      color: var(--text); font-size: 16px; margin: 0 0 10px 0;
+      padding-bottom: 8px; border-bottom: 1px solid var(--accent);
+      text-align: center;
+    }
+
+    .stats-list { list-style: none; padding: 0; margin: 0; max-height: 180px; overflow-y: auto; }
+    .stats-list li { display: flex; flex-direction: column; margin-bottom: 8px; font-size: 14px; color: var(--muted); }
+
+    .bar-bg { background: rgba(255,255,255,0.08); height: 10px; border-radius: 6px; overflow: hidden; margin-top: 4px; }
+    .bar-fill { background: linear-gradient(90deg,#ff9a8b,#6dd5fa); height: 100%; width: 0%; border-radius: 6px; transition: width 1s ease; }
+    body.light .bar-fill { background: linear-gradient(90deg,#ff5722,#2196f3); }
+    .stat-count { font-weight: 600; color: var(--text); font-size: 12px; align-self: flex-end; }
+  </style>
+</head>
+<body>
+  <div class="bg-animated"></div>
+  <div class="glow"><div class="blob"></div><div class="blob"></div><div class="blob"></div></div>
+
+  <button id="themeBtn" class="theme-toggle">🌙 Tema Değiştir</button>
+
+  <div class="wrap">
+    <div class="card">
+      <div class="left">
+        <h1>Favori Hocan Kim?</h1>
+        <p class="lead">İsmi yazın; girilen isme göre deterministik ama rastgele görünen bir hoca atanacak. İsmini yaz , "Favori Hocan" butonuna tıkla ve favori hocanı gör!</p>
+        <div class="input-row">
+          <input id="nameInput" type="text" placeholder="İsim yazınız" aria-label="İsim" />
+          <button id="pickBtn" class="btn">Favori Hocan</button>
+        </div>
+        <p class="small">Not: Aynı isim her zaman aynı hocayı getirir. Tamamen rastgele isterseniz butona birkaç kere tıklayın.</p>
+      </div>
+
+      <div class="right">
+        <div id="result" class="teacher-card" aria-live="polite">
+          <div class="teacher-name" id="teacherName">Made by J3w21b</div>
+          <p class="teacher-desc" id="teacherDesc">Burada seçilen hocanın kısa tanımı görüntülenir.</p>
+        </div>
+        <div id="statsContainer" class="stats-container"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>© 2025 Made by J3w21b</footer>
+
+  <script>
+    const teachers = [
+      { id: 'S4', name: 'Mustafa Doğru', desc: 'Matematik uzmanı. İŞTE BÖLE!', count: 0 },
+      { id: 'S2', name: 'Gülbahar Erdoğan', desc: 'Eskiye göre çok daha iyi.', count: 0 },
+      { id: 'S1', name: 'Sinan Kozan', desc: 'Sınav evimiz, Sinan babamız!', count: 0 },
+      { id: 'S3', name: 'Özkan Işık', desc: 'Severizzz.', count: 0 },
+      { id: 'S11', name: 'Kemal Koç', desc: 'Tartışılır...', count: 0 },
+      { id: 'S5', name: 'Hatice Aktaş', desc: 'Öğrenci için çabalar.', count: 0 },
+      { id: 'S6', name: 'Ayşenur Giriş', desc: 'Din konusunda tecrübeli.', count: 0 },
+      { id: 'S7', name: 'Orhan Mülayimoğulları', desc: 'ADAMDIR!', count: 0 },
+      { id: 'S8', name: 'Gülten Demir', desc: 'Dersini çoğunlukla dinlenmiyor ama ben dinlerim.', count: 0 },
+      { id: 'S9', name: 'Sevgi Türk', desc: 'Geometri konusunda bilgili.', count: 0 },
+      { id: 'S10', name: 'Selçuk Kılık', desc: 'İyi hocadır.', count: 0 }
+    ];
+
+    const input = document.getElementById('nameInput');
+    const btn = document.getElementById('pickBtn');
+    const result = document.getElementById('result');
+    const teacherNameEl = document.getElementById('teacherName');
+    const teacherDescEl = document.getElementById('teacherDesc');
+    const themeBtn = document.getElementById('themeBtn');
+    const statsContainer = document.getElementById('statsContainer');
+
+    // LOCALSTORAGE'DAN VERİLERİ YÜKLE
+    const savedData = JSON.parse(localStorage.getItem('teacherStats'));
+    if (savedData) {
+      for (let i = 0; i < teachers.length; i++) {
+        teachers[i].count = savedData[i]?.count || 0;
+      }
+    }
+
+    // TEMA DURUMUNU YÜKLE
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+      document.body.classList.add('light');
+      themeBtn.textContent = '🌙 Karanlık Tema';
+    }
+
+    function nameToIndex(name){
+      if(!name) return Math.floor(Math.random()*teachers.length);
+      const s = name.trim().toLowerCase();
+      let hash = 0;
+      for(let i=0;i<s.length;i++){ hash = (hash * 31 + s.charCodeAt(i)) | 0; }
+      hash = Math.abs(hash);
+      return hash % teachers.length;
+    }
+
+    function showTeacher(idx){
+      const t = teachers[idx];
+      t.count++;
+      teacherNameEl.textContent = `${t.id} — ${t.name}`;
+      teacherDescEl.textContent = t.desc;
+      result.classList.remove('show');
+      setTimeout(()=> result.classList.add('show'), 50);
+      updateStats();
+      // LOCALSTORAGE'A KAYDET
+      localStorage.setItem('teacherStats', JSON.stringify(teachers));
+    }
+
+    function updateStats(){
+      const sorted = [...teachers].sort((a,b)=>b.count - a.count).filter(t=>t.count>0);
+      if(sorted.length === 0){
+        statsContainer.innerHTML = '<h3>En Favoriler</h3><p style="text-align:center;">Henüz kimse seçilmedi.</p>';
+        return;
+      }
+      const max = Math.max(...sorted.map(t=>t.count));
+      let html = '<h3>En Favori Hocalar</h3><ul class="stats-list">';
+      for(const t of sorted){
+        const width = (t.count / max) * 100;
+        html += `
+          <li>
+            <span>${t.name}</span>
+            <div class="bar-bg"><div class="bar-fill" style="width:${width}%"></div></div>
+            <span class="stat-count">${t.count} oy</span>
+          </li>`;
+      }
+      html += '</ul>';
+      statsContainer.innerHTML = html;
+      statsContainer.classList.add('show');
+    }
+
+    btn.addEventListener('click', ()=>{
+      const name = input.value;
+      const idx = nameToIndex(name);
+      showTeacher(idx);
+    });
+
+    input.addEventListener('keydown',(e)=>{
+      if(e.key === 'Enter'){ e.preventDefault(); btn.click(); }
+    });
+
+    themeBtn.addEventListener('click', ()=>{
+      document.body.classList.toggle('light');
+      const isLight = document.body.classList.contains('light');
+      themeBtn.textContent = isLight ? '🌙 Karanlık Tema' : '☀️ Aydınlık Tema';
+      localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    });
+
+    result.classList.add('show');
+    updateStats();
+  </script>
+</body>
+</html>
